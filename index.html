@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saya Dimsum | Seller Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">SD</div>
+        <div><strong>Saya Dimsum</strong><small>Seller dashboard</small></div>
+      </div>
+      <div class="shop-status"><span class="status-dot"></span> Toko aktif</div>
+      <nav>
+        <button class="nav-link active" data-page="order-page"><span>＋</span> Order Input</button>
+        <button class="nav-link" data-page="progress-page"><span>◷</span> In Progress <b id="nav-count">0</b></button>
+        <button class="nav-link" data-page="sales-page"><span>▤</span> Daily Sales</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="mqtt-indicator"><span class="status-dot" id="mqtt-dot"></span><div><b>MQTT device</b><small id="mqtt-status">Mengecek koneksi…</small></div></div>
+        <small class="side-note">ESP32 · Wokwi · HiveMQ</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div><p class="eyebrow">SAYA DIMSUM / SELLER</p><h1 id="page-heading">Order Input</h1></div>
+        <div class="date-chip"><span>●</span><span id="today-label">Hari ini</span></div>
+      </header>
+
+      <section class="page active" id="order-page">
+        <div class="welcome-row">
+          <div><h2>Catat pesanan baru</h2><p>Masukkan pesanan pelanggan ke sistem antrean.</p></div>
+          <div class="stock-pill"><span>Stok tersedia</span><strong id="stock-available">50</strong><small>porsi</small></div>
+        </div>
+        <div class="content-grid">
+          <div class="panel order-panel">
+            <div class="panel-heading"><div><h3>Menu hari ini</h3><p>Pilih jumlah sesuai pesanan pelanggan.</p></div><span class="panel-icon">🍽️</span></div>
+            <div class="menu-item">
+              <div class="menu-thumb">🥟</div><div class="menu-info"><b>Dimsum</b><small>Rp 15.000 / porsi</small></div>
+              <div class="quantity"><button class="qty-btn" data-item="Dimsum" data-step="-1">−</button><strong id="qty-dimsum">0</strong><button class="qty-btn" data-item="Dimsum" data-step="1">+</button></div>
+            </div>
+            <div class="menu-item">
+              <div class="menu-thumb fried">🥠</div><div class="menu-info"><b>Fried dimsum</b><small>Rp 15.000 / porsi</small></div>
+              <div class="quantity"><button class="qty-btn" data-item="Fried dimsum" data-step="-1">−</button><strong id="qty-fried">0</strong><button class="qty-btn" data-item="Fried dimsum" data-step="1">+</button></div>
+            </div>
+            <div class="payment-area"><h3>Metode pembayaran</h3><div class="payment-options">
+              <button class="payment-option selected" data-payment="QRIS"><span>▦</span><b>QRIS</b><small>Non-tunai</small></button>
+              <button class="payment-option" data-payment="Cash"><span>💵</span><b>Cash</b><small>Tunai</small></button>
+            </div></div>
+            <div class="total-row"><span>Total pembayaran</span><strong id="order-total">Rp 0</strong></div>
+            <button class="primary-btn full" id="process-order">Process Order <span>→</span></button>
+            <p class="form-message" id="order-message"></p>
+          </div>
+
+          <div class="right-stack">
+            <div class="panel stock-panel">
+              <div class="panel-heading"><div><h3>Stok hari ini</h3><p>Atur jumlah stok awal.</p></div><span class="panel-icon">📦</span></div>
+              <label for="stock-input">Jumlah stok (porsi)</label>
+              <div class="stock-edit"><input id="stock-input" type="number" min="0" value="50"><button id="save-stock">Simpan</button></div>
+              <div class="stock-progress"><div id="stock-bar"></div></div>
+              <div class="stock-caption"><span>Terjual: <b id="sold-today">0</b></span><span>Sisa: <b id="stock-left">50</b></span></div>
+            </div>
+            <div class="tip-card"><span>💡</span><div><b>Alur pesanan</b><p>Setelah menekan Process Order, pesanan akan masuk ke In Progress dan mendapatkan nomor antrean.</p></div></div>
+            <div class="mini-stats"><div><small>Antrean aktif</small><strong id="mini-progress">0</strong></div><div><small>Pesanan selesai</small><strong id="mini-done">0</strong></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="progress-page">
+        <div class="section-intro"><div><h2>Pesanan sedang diproses</h2><p>Tekan Done setelah pesanan siap diambil. ESP32 akan memanggil nomor antrean.</p></div><span class="live-tag"><i></i> LIVE</span></div>
+        <div class="summary-strip"><div><small>Antrean aktif</small><strong id="progress-total">0</strong></div><div><small>Stok hari ini</small><strong id="progress-stock">50</strong></div><div><small>Sisa stok</small><strong id="progress-left">50</strong></div></div>
+        <div id="progress-list" class="order-list"></div>
+      </section>
+
+      <section class="page" id="sales-page">
+        <div class="section-intro"><div><h2>Daily Sales</h2><p>Ringkasan pesanan yang sudah diselesaikan hari ini.</p></div><span class="date-chip" id="sales-date">Hari ini</span></div>
+        <div class="metric-grid">
+          <div class="metric-card featured"><small>Total revenue</small><strong id="revenue">Rp 0</strong><span>↗ Penjualan hari ini</span></div>
+          <div class="metric-card"><small>Sold / stock today</small><strong id="sold-stock">0 / 50</strong><span>Jumlah porsi terjual</span></div>
+          <div class="metric-card"><small>Dimsum / Fried</small><strong id="menu-sold">0 / 0</strong><span>Rincian menu terjual</span></div>
+          <div class="metric-card"><small>QRIS / Cash</small><strong id="payment-sold">0 / 0</strong><span>Jumlah transaksi</span></div>
+        </div>
+        <div class="panel table-panel"><div class="panel-heading"><div><h3>Riwayat penjualan</h3><p>Daftar pesanan yang telah selesai.</p></div><span class="panel-icon">📊</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Waktu</th><th>No.</th><th>Menu</th><th>Pembayaran</th><th>Total</th></tr></thead><tbody id="sales-table"></tbody></table></div>
+          <div class="empty-state" id="sales-empty">Belum ada penjualan selesai hari ini.</div>
+        </div>
+      </section>
+      <footer>© 2026 Saya Dimsum · Sistem antrean berbasis IoT</footer>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
